@@ -29,13 +29,13 @@ The repository contains an Azure ARM template for both the **BYOL** and **PAYG**
 ## Azure VM Scale Set Configuration
 
 The Azure ARM templates within the repository support the following VMSS features.
-* [Application Health Monitoring Extension](https://docs.microsoft.com/en-us/azure/virtual-machine-scale-sets/virtual-machine-scale-sets-health-extension)
-* [Termination Notification](https://docs.microsoft.com/en-us/azure/virtual-machine-scale-sets/virtual-machine-scale-sets-terminate-notification)
-* [Autoscaling using Metrics](https://docs.microsoft.com/en-us/azure/virtual-machine-scale-sets/virtual-machine-scale-sets-autoscale-overview)
+* Application Health Monitoring Extension
+* Termination Notification
+* Autoscaling with Metrics
 
-### Application Health
+### Application Health Monitoring
 
-The Application Health Extension is supported within Azure allowing VM instances within an VMSS to provide a
+The [Application Health Monitoring Extension](https://docs.microsoft.com/en-us/azure/virtual-machine-scale-sets/virtual-machine-scale-sets-health-extension) is supported within Azure allowing VM instances within an VMSS to provide a
 health state to the VMSS. The Health Extensions polls an API endpoint periodically. The API endpoint is provided
 by the KNIME Executor. It reports on whether the instance is *healthy* or *unhealthy*. If a KNIME Executor becomes
 unhealthy for any reason, the health check will report an *unhealthy* state. Any Executor instance reporting an
@@ -74,7 +74,7 @@ instances only to have them fail.
 
 ### Termination Notification
 
-The Azure VMSS supports providing a notification to all VM's in the VMSS of a termination event. This notification gives the VM
+The Azure VMSS supports [termination notification](https://docs.microsoft.com/en-us/azure/virtual-machine-scale-sets/virtual-machine-scale-sets-terminate-notification) to all VM's in the VMSS of a termination event. This notification gives the VM
 a window of opportunity to perform any clean up tasks required. The KNIME Executors use this notification to stop accepting any
 new work and to attempt to finish any current jobs.
 
@@ -97,6 +97,10 @@ Here is a fragment of the ARM template that enables the termination notification
 
 The grace period defines a set window of time that a KNIME Executor has to reply to the termination event. After this period
 of time the Executor will be forcefully terminated.
+
+### Autoscaling with Metrics
+
+[Autoscaling with metrics](https://docs.microsoft.com/en-us/azure/virtual-machine-scale-sets/virtual-machine-scale-sets-autoscale-overview)
 
 ---
 
