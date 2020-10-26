@@ -18,8 +18,9 @@ instances in the VMSS.
 ![Architecture Diagram](/images/topology.png)
 
 KNIME Executors are supported in the Azure Marketplace in the following forms.
-- Pay As You Go (**PAYG**) instances are charged to your Azure account per hour. PAYG supports elastic scaling.
-- Bring Your Own License (**BYOL**) instances are licensed through the KNIME Server using core tokens. Contact
+
+* Pay As You Go (**PAYG**) instances are charged to your Azure account per hour. PAYG supports elastic scaling.
+* Bring Your Own License (**BYOL**) instances are licensed through the KNIME Server using core tokens. Contact
 KNIME at *sales@knime.com* for more information.
 
 The repository contains an Azure ARM template for both the **BYOL** and **PAYG** offerings.
@@ -29,6 +30,7 @@ The repository contains an Azure ARM template for both the **BYOL** and **PAYG**
 ## Azure VM Scale Set Configuration
 
 The Azure ARM templates within the repository support the following VMSS features.
+
 * Application Health Monitoring Extension
 * Termination Notification
 * Autoscaling with Metrics
