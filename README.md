@@ -152,23 +152,23 @@ For detailed information about these parameters, refer to the [KNIME Server Admi
 
 ## ARM Template Parameters
 
-| Parameter | Description |
-| --------- | -----------
-| vmSku | The size to use for VM's in the VMSS. For example *Standard_D1_v2*. |
-| vmssName | The name to give the VMSS. It must be unique within the given VNet. |
-| instanceCount | The number of Executor instances wanted. Can be overridden by autoscaling settings. |
-| adminUsername | User name to create and configure as and admin (adm group) on all instances |
-| adminPassword | Password for the admin user |
-| existingVnetName | The name of an existing Vnet (virtual network). The VMSS will be deployed in the Vnet. |
-| existingSubnetName | The name of an existing subnet within the Vnet. Executor instances will be deployed in this subnet. |
-| serverHost | The private IP address of the KNIME Server of the RabbitMQ server (if they are different) |
-| rmqVhost | The RabbitMQ Virtual host (Vhost) configured for the KNIME Server |
-| rmqUser | The RabbitMQ user configured for the KNIME Server |
-| rmqPassword | The RabbitMQ user password configured for the KNIME Server |
-| executorGroup | The Executor Group membership of all Executors in the VMSS |
-| executorResources | The resources associated with all Executors in the VMSS |
-| heapUsagePercentLimit | Memory usage threshold above which an Executor stops accepting new work |
-| cpuUsagePercentLimit | CPU usage threshold above which an Executor stops accepting new work |
+| Parameter             | Description                                                                                         |
+| ----------------------|-----------------------------------------------------------------------------------------------------|
+| vmSku                 | The size to use for VM's in the VMSS. For example *Standard_D1_v2*.                                 |
+| vmssName              | The name to give the VMSS. It must be unique within the given VNet.                                 |
+| instanceCount         | The number of Executor instances wanted. Can be overridden by autoscaling settings.                 |
+| adminUsername         | User name to create and configure as and admin (adm group) on all instances                         |
+| adminPassword         | Password for the admin user                                                                         |
+| existingVnetName      | The name of an existing Vnet (virtual network). The VMSS will be deployed in the Vnet.              |
+| existingSubnetName    | The name of an existing subnet within the Vnet. Executor instances will be deployed in this subnet. |
+| serverHost            | The private IP address of the KNIME Server of the RabbitMQ server (if they are different)           |
+| rmqVhost              | The RabbitMQ Virtual host (Vhost) configured for the KNIME Server                                   |
+| rmqUser               | The RabbitMQ user configured for the KNIME Server                                                   |
+| rmqPassword           | The RabbitMQ user password configured for the KNIME Server                                          |
+| executorGroup         | The Executor Group membership of all Executors in the VMSS                                          |
+| executorResources     | The resources associated with all Executors in the VMSS                                             |
+| heapUsagePercentLimit | Memory usage threshold above which an Executor stops accepting new work                             |
+| cpuUsagePercentLimit  | CPU usage threshold above which an Executor stops accepting new work                                |
 
 For detailed information about these parameters, refer to the [KNIME Server Admin Guide](https://docs.knime.com/2020-07/server_admin_guide/index.html).
 
