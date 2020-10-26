@@ -1,47 +1,167 @@
+
+# Using KNIME Executors in Azure
+
+This repository provides information about how to get started using KNIME Executors in the Azure cloud platform.
+It also includes sample Azure ARM and Terraform templates to help you get started quickly. Feel free to copy
+the templates (or snippets from them) and reuse them as needed. See the *license.txt* file in the repository
+for licensing specifics.
+
+KNIME Executors are used by the KNIME Server to run KNIME Workflows. In the KNIME Server, workflows can be executed
+through a schedule, a REST API call, remotely using the KNIME Analytics Platform and through the KNIME WebPortal.
+When a workflow is run, the KNIME Server using an Executor for the actual execution.
+
+The diagram below illustrates a KNIME Server and multiple KNIME Executors running in Azure. A virtual network (VNet)
+is required with a least one subnet. The KNIME Executors can be deployed using an Azure VM Scale Set (VMSS). The VMSS
+manages the Executor instances and supports elastic scaling of the Executors based on the average CPU utilization of
+instances in the VMSS.
+
 ![Architecture Diagram](/images/topology.png)
 
-**Edit a file, create a new file, and clone from Bitbucket in under 2 minutes**
+KNIME Executors are supported in the Azure Marketplace in two forms:
+* **PAYG** Pay As You Go (PAYG) instances are charged to your Azure account per hour. PAYG supports elastic scaling.
+*  **BYOL** Bring Your Own License (BYOL) instances are licensed through the KNIME Server using core tokens. Contact
+KNIME at *sales@knime.com* for more information.
 
-When you're done, you can delete the content in this README and update the file with details for others getting started with your repository.
-
-*We recommend that you open this README in another tab as you perform the tasks below. You can [watch our video](https://youtu.be/0ocf7u76WSo) for a full demo of all the steps in this tutorial. Open the video in a new tab to avoid leaving Bitbucket.*
-
----
-
-## Edit a file
-
-You’ll start by editing this README file to learn how to edit a file in Bitbucket.
-
-1. Click **Source** on the left side.
-2. Click the README.md link from the list of files.
-3. Click the **Edit** button.
-4. Delete the following text: *Delete this line to make a change to the README from Bitbucket.*
-5. After making your change, click **Commit** and then **Commit** again in the dialog. The commit page will open and you’ll see the change you just made.
-6. Go back to the **Source** page.
+The repository contains an Azure ARM template for both the **BYOL** and **PAYG** offerings.
 
 ---
 
-## Create a file
+## Azure VM Scale Set Configuration
 
-Next, you’ll add a new file to this repository.
+The Azure ARM templates within the repository support the following VMSS features:
+* [Application Health Monitoring Extension](https://docs.microsoft.com/en-us/azure/virtual-machine-scale-sets/virtual-machine-scale-sets-health-extension)
+* [Termination Notification](https://docs.microsoft.com/en-us/azure/virtual-machine-scale-sets/virtual-machine-scale-sets-terminate-notification)
+* [Autoscaling using Metrics](https://docs.microsoft.com/en-us/azure/virtual-machine-scale-sets/virtual-machine-scale-sets-autoscale-overview)
 
-1. Click the **New file** button at the top of the **Source** page.
-2. Give the file a filename of **contributors.txt**.
-3. Enter your name in the empty file space.
-4. Click **Commit** and then **Commit** again in the dialog.
-5. Go back to the **Source** page.
+### Application Health
 
-Before you move on, go ahead and explore the repository. You've already seen the **Source** page, but check out the **Commits**, **Branches**, and **Settings** pages.
+The Application Health Extension is supported within Azure allowing VM instances within an VMSS to provide a
+health state to the VMSS. The Health Extensions polls an API endpoint periodically. The API endpoint is provided
+by the KNIME Executor. It reports on whether the instance is *healthy* or *unhealthy*. If a KNIME Executor becomes
+unhealthy for any reason, the health check will report an *unhealthy* state. Any Executor instance reporting an
+*unhealthy* state will immediately be terminated by the VMSS. The VMSS will automatically replace an unhealthy
+Executor with a new instance.
+
+There are two pieces to supporting the Application Health Extensions:
+* Specifying configuration of the extension in the ARM template,
+* Providing an API endpoint for the health check. This is provided by the KNIME Executor.
+
+Below is a fragment of the ARM template that enables the Application Health Extension. Note that changing the protocol,
+port, or request path will cause all health checks to fail. This can result in an endless loop of starting new Executor
+instances only to have them fail.
+
+``` json
+"extensionProfile": {
+  "extensions": [
+    {
+      "type": "extensions",
+      "name": "KNIMEExecutorHealthExtension",
+      "properties": {
+        "publisher": "Microsoft.ManagedServices",
+        "type": "ApplicationHealthLinux",
+        "autoUpgradeMinorVersion": true,
+        "typeHandlerVersion": "1.0",
+        "settings": {
+          "protocol": "http",
+          "port": 8080,
+          "requestPath": "/health"
+        }
+      }
+    }
+  ]
+}
+```
+
+### Termination Notification
+
+The Azure VMSS supports providing a notification to all VM's in the VMSS of a termination event. This notification gives the VM
+a window of opportunity to perform any clean up tasks required. The KNIME Executors use this notification to stop accepting any
+new work and to attempt to finish any current jobs.
+
+Termination notifications are sent to the VM's in A VMSS using an event system. Each VM in the VMSS will receive the termination event.
+By periodically checking for new events, a KNIME Executor instance can recognize that it is being terminated.
+
+There are two pieces to supporting the Application Health Extensions:
+* Specifying configuration of the extension in the ARM template
+* A script run periodically on the VM to recognize the notification and *complete* the termination when ready. This script
+is provided by the KNIME Executor automatically.
+
+Here is a fragment of the ARM template that enables the termination notification:
+
+``` json
+"automaticRepairsPolicy": {
+  "enabled": "true",
+  "gracePeriod": "PT30M"
+}
+```
+
+The grace period defines a set window of time that a KNIME Executor has to reply to the termination event. After this period
+of time the Executor will be forcefully terminated.
 
 ---
 
-## Clone a repository
+## Custom Data
 
-Use these steps to clone from SourceTree, our client for using the repository command-line free. Cloning allows you to work on your files locally. If you don't yet have SourceTree, [download and install first](https://www.sourcetreeapp.com/). If you prefer to clone from the command line, see [Clone a repository](https://confluence.atlassian.com/x/4whODQ).
+Azure supports providing custom data to a VM. The custom data can be a shell script to execute, a text file or a cloud-init directive.
+KNIME Executors expect a cloud-init directive. This directive specifies the needed parameters that have to be passed to the Executor
+to allow it to find the KNIME Server.
 
-1. You’ll see the clone button under the **Source** heading. Click that button.
-2. Now click **Check out in SourceTree**. You may need to create a SourceTree account or log in.
-3. When you see the **Clone New** dialog in SourceTree, update the destination path and name if you’d like to and then click **Clone**.
-4. Open the directory you just created to see your repository’s files.
+The example Azure ARM templates configure the custom data and pass the results to each VM within a VMSS. If you decide to
+use a different technology to create VMSS instances for KNIME Executors, be sure to use the format specified below. Change
+the values in the *knime-executor.config* section to match your configuration.
 
-Now that you're more familiar with your Bitbucket repository, go ahead and add a new file locally. You can [push your change back to Bitbucket with SourceTree](https://confluence.atlassian.com/x/iqyBMg), or you can [add, commit,](https://confluence.atlassian.com/x/8QhODQ) and [push from the command line](https://confluence.atlassian.com/x/NQ0zDQ).
+```
+#cloud-config
+output : { all : '| tee -a /var/log/cloud-init-output.log' }
+write_files:
+  - owner: knime:knime
+    path: /var/opt/knime-executor.config
+    content: |
+      KNIME_SERVER_HOST=10.0.0.4
+      KNIME_VIRTUAL_HOST=knime-server
+      KNIME_RMQ_USER=knime
+      KNIME_RMQ_PASSWORD=knime
+      KNIME_EXECUTOR_GROUP=payg-group
+      KNIME_EXECUTOR_RESOURCES=
+      KNIME_EXECUTOR_HEAP_USAGE_PERCENT_LIMIT=90
+      KNIME_EXECUTOR_CPU_USAGE_PERCENT_LIMIT=85
+runcmd:
+  - /opt/knime/knime-utils/configure_executor.sh
+```
+
+Configuration Item | Description
+------------------ | -----------
+KNIME_SERVER_HOST | The private IP address of the KNIME Server or RabbitMQ server
+KNIME_VIRTUAL_HOST | The RabbitMQ virtual host (vhost) configured for the KNIME Server
+KNIME_RMQ_USER | The RabbitMQ user configured for the KNIME Server
+KNIME_RMQ_PASSWORD | The RabbitMQ user password configured for the KNIME Server
+KNIME_EXECUTOR_GROUP | The Executor Group membership of all Executors in the VMSS
+KNIME_EXECUTOR_RESOURCES | The resources associated with all Executors in the VMSS
+KNIME_EXECUTOR_HEAP_USAGE_PERCENT_LIMIT | Memory usage threshold above which an Executor stops accepting new work
+KNIME_EXECUTOR_CPU_USAGE_PERCENT_LIMIT | CPU usage threshold above which an Executor stops accepting new work
+
+For detailed information about these parameters, refer to the [KNIME Server Admin Guide](https://docs.knime.com/2020-07/server_admin_guide/index.html).
+
+---
+
+## ARM Template Parameters
+
+Parameter | Description
+--------- | -----------
+vmSku | The size to use for VM's in the VMSS. For example *Standard_D1_v2*.
+vmssName | The name to give the VMSS. It must be unique within the given VNet.
+instanceCount | The number of Executor instances wanted. Can be overridden by autoscaling settings.
+adminUsername | User name to create and configure as and admin (adm group) on all instances
+adminPassword | Password for the admin user
+existingVnetName | The name of an existing Vnet (virtual network). The VMSS will be deployed in the Vnet.
+existingSubnetName | The name of an existing subnet within the Vnet. Executor instances will be deployed in this subnet.
+serverHost | The private IP address of the KNIME Server of the RabbitMQ server (if they are different)
+rmqVhost | The RabbitMQ Virtual host (Vhost) configured for the KNIME Server
+rmqUser | The RabbitMQ user configured for the KNIME Server
+rmqPassword | The RabbitMQ user password configured for the KNIME Server
+executorGroup | The Executor Group membership of all Executors in the VMSS
+executorResources | The resources associated with all Executors in the VMSS
+heapUsagePercentLimit | Memory usage threshold above which an Executor stops accepting new work
+cpuUsagePercentLimit | CPU usage threshold above which an Executor stops accepting new work
+
+For detailed information about these parameters, refer to the [KNIME Server Admin Guide](https://docs.knime.com/2020-07/server_admin_guide/index.html).
