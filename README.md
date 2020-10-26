@@ -102,7 +102,11 @@ of time the Executor will be forcefully terminated.
 
 ### Autoscaling with Metrics
 
-[Autoscaling with metrics](https://docs.microsoft.com/en-us/azure/virtual-machine-scale-sets/virtual-machine-scale-sets-autoscale-overview)
+Azure VMSS [autoscaling](https://docs.microsoft.com/en-us/azure/virtual-machine-scale-sets/virtual-machine-scale-sets-autoscale-overview)
+supports elastic scaling. Elastic scaling allows you to provide a range of the number of Executor instances deployed.  The VMSS
+will manage the number of deployed instances according to defined metrics. The sample ARM template uses the average CPU utilization
+of the VMSS to support scaling events. When the upper CPU utilization metric is passed, the VMSS will create a scale event to add more
+Executor instances. Likewise when the CPU utilization falls below the lower metric, the VMSS will pick instance(s) to terminate.
 
 ---
 
@@ -135,6 +139,8 @@ runcmd:
   - /opt/knime/knime-utils/configure_executor.sh
 ```
 
+The table belows provides more information about each configuration item variable in the cloud-init configuration.
+
 | Configuration Item | Description |
 | ------------------ | ----------- |
 | KNIME_SERVER_HOST | The private IP address of the KNIME Server or RabbitMQ server |
@@ -144,7 +150,7 @@ runcmd:
 | KNIME_EXECUTOR_GROUP | The Executor Group membership of all Executors in the VMSS |
 | KNIME_EXECUTOR_RESOURCES | The resources associated with all Executors in the VMSS |
 | KNIME_EXECUTOR_HEAP_USAGE_PERCENT_LIMIT | Memory usage threshold above which an Executor stops accepting new work |
-| KNIME_EXECUTOR_CPU_USAGE_PERCENT_LIMIT | CPU usage threshold above which an Executor stops accepting new work |
+| KNIME_EXECUTOR_CPU_USAGE_PERCENT_LIMIT  | CPU usage threshold above which an Executor stops accepting new work |
 
 For detailed information about these parameters, refer to the [KNIME Server Admin Guide](https://docs.knime.com/2020-07/server_admin_guide/index.html).
 
@@ -152,8 +158,12 @@ For detailed information about these parameters, refer to the [KNIME Server Admi
 
 ## ARM Template Parameters
 
+The ARM template(s) provide the user the ability to provide parameter values that affect the deployment. When using the template
+you will have an opportunity to provide values that match your deployment. The table below provides more information about the
+supported parameters.
+
 | Parameter             | Description                                                                                         |
-| ----------------------|-----------------------------------------------------------------------------------------------------|
+|-----------------------|-----------------------------------------------------------------------------------------------------|
 | vmSku                 | The size to use for VM's in the VMSS. For example *Standard_D1_v2*.                                 |
 | vmssName              | The name to give the VMSS. It must be unique within the given VNet.                                 |
 | instanceCount         | The number of Executor instances wanted. Can be overridden by autoscaling settings.                 |
