@@ -48,9 +48,9 @@ There are two pieces to supporting the Application Health Extensions:
 * Specifying configuration of the extension in the ARM template,
 * Providing an API endpoint for the health check. This is provided by the KNIME Executor.
 
-Below is a fragment of the ARM template that enables the Application Health Extension. Note that changing the protocol,
-port, or request path will cause all health checks to fail. This can result in an endless loop of starting new Executor
-instances only to have them fail.
+Below is a fragment of the ARM template that enables the Application Health Extension. Note that changing the *protocol*,
+*port*, or *requestPath* will cause all health checks to fail. This can result in an endless loop of starting new Executor
+instances only to have them fail the health check and be terminated.
 
 ``` json
 "extensionProfile": {
@@ -135,16 +135,16 @@ runcmd:
   - /opt/knime/knime-utils/configure_executor.sh
 ```
 
-Configuration Item | Description
------------------- | -----------
-KNIME_SERVER_HOST | The private IP address of the KNIME Server or RabbitMQ server
-KNIME_VIRTUAL_HOST | The RabbitMQ virtual host (vhost) configured for the KNIME Server
-KNIME_RMQ_USER | The RabbitMQ user configured for the KNIME Server
-KNIME_RMQ_PASSWORD | The RabbitMQ user password configured for the KNIME Server
-KNIME_EXECUTOR_GROUP | The Executor Group membership of all Executors in the VMSS
-KNIME_EXECUTOR_RESOURCES | The resources associated with all Executors in the VMSS
-KNIME_EXECUTOR_HEAP_USAGE_PERCENT_LIMIT | Memory usage threshold above which an Executor stops accepting new work
-KNIME_EXECUTOR_CPU_USAGE_PERCENT_LIMIT | CPU usage threshold above which an Executor stops accepting new work
+| Configuration Item | Description |
+| ------------------ | ----------- |
+| KNIME_SERVER_HOST | The private IP address of the KNIME Server or RabbitMQ server |
+| KNIME_VIRTUAL_HOST | The RabbitMQ virtual host (vhost) configured for the KNIME Server |
+| KNIME_RMQ_USER | The RabbitMQ user configured for the KNIME Server |
+| KNIME_RMQ_PASSWORD | The RabbitMQ user password configured for the KNIME Server |
+| KNIME_EXECUTOR_GROUP | The Executor Group membership of all Executors in the VMSS |
+| KNIME_EXECUTOR_RESOURCES | The resources associated with all Executors in the VMSS |
+| KNIME_EXECUTOR_HEAP_USAGE_PERCENT_LIMIT | Memory usage threshold above which an Executor stops accepting new work |
+| KNIME_EXECUTOR_CPU_USAGE_PERCENT_LIMIT | CPU usage threshold above which an Executor stops accepting new work |
 
 For detailed information about these parameters, refer to the [KNIME Server Admin Guide](https://docs.knime.com/2020-07/server_admin_guide/index.html).
 
@@ -152,22 +152,31 @@ For detailed information about these parameters, refer to the [KNIME Server Admi
 
 ## ARM Template Parameters
 
-Parameter | Description
---------- | -----------
-vmSku | The size to use for VM's in the VMSS. For example *Standard_D1_v2*.
-vmssName | The name to give the VMSS. It must be unique within the given VNet.
-instanceCount | The number of Executor instances wanted. Can be overridden by autoscaling settings.
-adminUsername | User name to create and configure as and admin (adm group) on all instances
-adminPassword | Password for the admin user
-existingVnetName | The name of an existing Vnet (virtual network). The VMSS will be deployed in the Vnet.
-existingSubnetName | The name of an existing subnet within the Vnet. Executor instances will be deployed in this subnet.
-serverHost | The private IP address of the KNIME Server of the RabbitMQ server (if they are different)
-rmqVhost | The RabbitMQ Virtual host (Vhost) configured for the KNIME Server
-rmqUser | The RabbitMQ user configured for the KNIME Server
-rmqPassword | The RabbitMQ user password configured for the KNIME Server
-executorGroup | The Executor Group membership of all Executors in the VMSS
-executorResources | The resources associated with all Executors in the VMSS
-heapUsagePercentLimit | Memory usage threshold above which an Executor stops accepting new work
-cpuUsagePercentLimit | CPU usage threshold above which an Executor stops accepting new work
+| Parameter | Description |
+| --------- | -----------
+| vmSku | The size to use for VM's in the VMSS. For example *Standard_D1_v2*. |
+| vmssName | The name to give the VMSS. It must be unique within the given VNet. |
+| instanceCount | The number of Executor instances wanted. Can be overridden by autoscaling settings. |
+| adminUsername | User name to create and configure as and admin (adm group) on all instances |
+| adminPassword | Password for the admin user |
+| existingVnetName | The name of an existing Vnet (virtual network). The VMSS will be deployed in the Vnet. |
+| existingSubnetName | The name of an existing subnet within the Vnet. Executor instances will be deployed in this subnet. |
+| serverHost | The private IP address of the KNIME Server of the RabbitMQ server (if they are different) |
+| rmqVhost | The RabbitMQ Virtual host (Vhost) configured for the KNIME Server |
+| rmqUser | The RabbitMQ user configured for the KNIME Server |
+| rmqPassword | The RabbitMQ user password configured for the KNIME Server |
+| executorGroup | The Executor Group membership of all Executors in the VMSS |
+| executorResources | The resources associated with all Executors in the VMSS |
+| heapUsagePercentLimit | Memory usage threshold above which an Executor stops accepting new work |
+| cpuUsagePercentLimit | CPU usage threshold above which an Executor stops accepting new work |
 
 For detailed information about these parameters, refer to the [KNIME Server Admin Guide](https://docs.knime.com/2020-07/server_admin_guide/index.html).
+
+---
+
+## Useful Links
+
+* [KNIME Server Admin Guide](https://docs.knime.com/2020-07/server_admin_guide/index.html)
+* [Application Health Monitoring Extension](https://docs.microsoft.com/en-us/azure/virtual-machine-scale-sets/virtual-machine-scale-sets-health-extension)
+* [Termination Notification](https://docs.microsoft.com/en-us/azure/virtual-machine-scale-sets/virtual-machine-scale-sets-terminate-notification)
+* [Autoscaling with metrics](https://docs.microsoft.com/en-us/azure/virtual-machine-scale-sets/virtual-machine-scale-sets-autoscale-overview)
