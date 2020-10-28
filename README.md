@@ -27,13 +27,44 @@ The repository contains an Azure ARM template for both the **BYOL** and **PAYG**
 
 ---
 
+## Getting Started
+
+### Enable Marketplace Image Usage
+
+To use a VM image from the Azure Marketplace in an ARM template (i.e. programmatically) you first have to enable access.
+To enable access, go to the Azure Marketplace and find the KNIME Executor of choice (BYOL or PAYG). Select the plan
+you want to use.
+
+On the page for the plan you'll see the text *Want to deploy programmatically?* with a link named *Get Started*. Click
+on the *Get Started* link. The link will take you to a new page with the plan details along with a list of your current
+subscriptions. Enable programatic access for the subscription(s) where you plan to use KNIME Executors. Ensure that
+you save your selections using the *Save* button.
+
+Until you enable programmatic usage for an Executor plan you will be unable to start Executors using the ARM
+templates contained in this project.
+
+### Using a Template
+
+To use one of the ARM templates you can either clone this project to your local filesystem or simply copy the text of
+the template. There are multiple ways you can use ARM templates, but we'll focus here on using them in the Azure Console.
+
+Within the Azure Console, select the "Templates" item in the left hand side frame. Create a new template, give it a useful
+name and paste the contents according to which template you want to use. You can then save the template and use the *Deploy*
+button to deploy it.
+
+Before deploying KNIME Executor(s), you'll first want to deploy the KNIME Server. When deploying one of the Executor templates,
+ensure you use the same resource group and VNET where the KNIME Server is deployed.
+
+---
+
 ## Azure VM Scale Set Configuration
 
-The Azure ARM templates within the repository support the following VMSS features.
+The Azure ARM templates within the repository support the following VMSS features. These must be enabled to allow the Executors
+to function properly within the VMSS deployment.
 
 * Application Health Monitoring Extension
 * Termination Notification
-* Autoscaling with Metrics
+* Autoscaling with Metrics (**PAYG** only)
 
 ### Application Health Monitoring
 
@@ -100,13 +131,22 @@ Here is a fragment of the ARM template that enables the termination notification
 The grace period defines a set window of time that a KNIME Executor has to reply to the termination event. After this period
 of time the Executor will be forcefully terminated.
 
-### Autoscaling with Metrics
+### Autoscaling with Metrics (**PAYG only**)
 
 Azure VMSS [autoscaling](https://docs.microsoft.com/en-us/azure/virtual-machine-scale-sets/virtual-machine-scale-sets-autoscale-overview)
 supports elastic scaling. Elastic scaling allows you to provide a range of the number of Executor instances deployed.  The VMSS
-will manage the number of deployed instances according to defined metrics. The sample ARM template uses the average CPU utilization
+will manage the number of deployed instances according to defined metrics. The **PAYG** example ARM template uses the average CPU utilization
 of the VMSS to support scaling events. When the upper CPU utilization metric is passed, the VMSS will create a scale event to add more
 Executor instances. Likewise when the CPU utilization falls below the lower metric, the VMSS will pick instance(s) to terminate.
+
+The **PAYG** template enables you to specify the minimum and maximum number of Executor instances to deploy. The VMSS will initially
+deploy with the minimum number of instances. As load increases, the VMSS will automatically create new Executor instances.
+
+You may also specify the upper and lower thresholds for the average CPU utilization metric. The upper threshold is the
+point above which more Executor(s) are needed. The lower threshold is the point below which fewer Executors are needed.
+
+The configuration of the VMSS settings are fairly minimal. Other settings such as notifications can also be enabled by
+extending the **PAYG** template.
 
 ---
 
@@ -116,9 +156,14 @@ Azure supports providing custom data to a VM. The custom data can be a shell scr
 KNIME Executors expect a cloud-init directive. This directive specifies the needed parameters that have to be passed to the Executor
 to allow it to find the KNIME Server.
 
-The example Azure ARM templates configure the custom data and pass the results to each VM within a VMSS. If you decide to
+The example Azure ARM templates configure the custom data and pass the data to each VM within a VMSS. There is need for you to
+change this. The purpose of this section is to inform you of the custom data in case you want to use a different method than ARM
+to deploy KNIME Executors.
+
+If you decide to
 use a different technology to create VMSS instances for KNIME Executors, be sure to use the format specified below. Change
-the values in the *knime-executor.config* section to match your configuration.
+the values in the *knime-executor.config* section to match your configuration. The example below provides sample values to
+demonstrate the structure of the *cloud-config* data.
 
 ```
 #cloud-config
@@ -158,29 +203,74 @@ For detailed information about these parameters, refer to the [KNIME Server Admi
 
 ## ARM Template Parameters
 
-The ARM template(s) provide the user the ability to provide parameter values that affect the deployment. When using the template
+### **BYOL** Template
+
+The **BYOL** ARM template enables users to provide parameter values that affect the deployment. When using the template
 you will have an opportunity to provide values that match your deployment. The table below provides more information about the
 supported parameters.
 
 | Parameter             | Description                                                                                         |
 |-----------------------|-----------------------------------------------------------------------------------------------------|
-| vmSku                 | The size to use for VM's in the VMSS. For example *Standard_D1_v2*.                                 |
+| vmSku                 | The SKU (size) to use for VM's in the VMSS. For example *Standard_D1_v2*.                           |
 | vmssName              | The name to give the VMSS. It must be unique within the given VNet.                                 |
-| instanceCount         | The number of Executor instances wanted. Can be overridden by autoscaling settings.                 |
-| adminUsername         | User name to create and configure as and admin (adm group) on all instances                         |
-| adminPassword         | Password for the admin user                                                                         |
 | existingVnetName      | The name of an existing Vnet (virtual network). The VMSS will be deployed in the Vnet.              |
 | existingSubnetName    | The name of an existing subnet within the Vnet. Executor instances will be deployed in this subnet. |
+| adminUsername         | User name to create and configure as and admin (adm group) on all instances                         |
+| adminPassword         | Password for the admin user                                                                         |
+| instanceCount         | The number of Executor instances wanted. Can be overridden by autoscaling settings.                 |
 | serverHost            | The private IP address of the KNIME Server of the RabbitMQ server (if they are different)           |
-| rmqVhost              | The RabbitMQ Virtual host (Vhost) configured for the KNIME Server                                   |
-| rmqUser               | The RabbitMQ user configured for the KNIME Server                                                   |
-| rmqPassword           | The RabbitMQ user password configured for the KNIME Server                                          |
+| rabbitmqVHost         | The RabbitMQ Virtual host (Vhost) configured for the KNIME Server                                   |
+| rabbitmqUser          | The RabbitMQ user configured for the KNIME Server                                                   |
+| rabbitmqPassword      | The RabbitMQ user password configured for the KNIME Server                                          |
+| executorGroup         | The Executor Group membership of all Executors in the VMSS                                          |
+| executorResources     | The resources associated with all Executors in the VMSS                                             |
+| heapUsagePercentLimit | Memory usage threshold above which an Executor stops accepting new work                             |
+| cpuUsagePercentLimit  | CPU usage threshold above which an Executor stops accepting new work                                |
+
+### **PAYG** Template
+
+The **PAYG** ARM template enables users to provide parameter values that affect the deployment. When using the template
+you will have an opportunity to provide values that match your deployment. The table below provides more information about the
+supported parameters. The **PAYG** template supports elastic scaling. The *minNumberOfInstances* and *maxNumberOfInstances*
+provide a range of the instance counts wanted in the VMSS. Likewise the *upperCpuPercentLimit* and *upperCpuPercentLimit* determine
+the upper and lower thresholds used for elastic scaling of KNIME Executors in the VMSS.
+
+| Parameter             | Description                                                                                         |
+|-----------------------|-----------------------------------------------------------------------------------------------------|
+| vmSku                 | The SKU (size) to use for VM's in the VMSS. For example *Standard_D1_v2*.                           |
+| vmssName              | The name to give the VMSS. It must be unique within the given VNet.                                 |
+| existingVnetName      | The name of an existing Vnet (virtual network). The VMSS will be deployed in the Vnet.              |
+| existingSubnetName    | The name of an existing subnet within the Vnet. Executor instances will be deployed in this subnet. |
+| adminUsername         | User name to create and configure as and admin (adm group) on all instances                         |
+| adminPassword         | Password for the admin user                                                                         |
+| minNumberOfInstances  | The minimum number of VM instances wanted in the VMSS                                               |
+| maxNumberOfInstances  | The maximum number of VM instances wanted in the VMSS                                               |
+| lowerCpuPercentLimit  | The lower threshold for aggregate CPU utilization below which the VMSS will remove Executor(s)      |
+| upperCpuPercentLimit  | The upper threshold for aggregate CPU utilization above which the VMSS will add additional Executor(s) |
+| serverHost            | The private IP address of the KNIME Server of the RabbitMQ server (if they are different)           |
+| rabbitmqVHost         | The RabbitMQ Virtual host (Vhost) configured for the KNIME Server                                   |
+| rabbitmqUser          | The RabbitMQ user configured for the KNIME Server                                                   |
+| rabbitmqPassword      | The RabbitMQ user password configured for the KNIME Server                                          |
 | executorGroup         | The Executor Group membership of all Executors in the VMSS                                          |
 | executorResources     | The resources associated with all Executors in the VMSS                                             |
 | heapUsagePercentLimit | Memory usage threshold above which an Executor stops accepting new work                             |
 | cpuUsagePercentLimit  | CPU usage threshold above which an Executor stops accepting new work                                |
 
 For detailed information about these parameters, refer to the [KNIME Server Admin Guide](https://docs.knime.com/2020-07/server_admin_guide/index.html).
+
+---
+
+## Things You May Want to Change
+
+The *plan name* or *sku* of the Executor in the Marketplace will change over time as new versions are available. For example,
+the sku *knime-executor-byol-4_2* is for version 4.2 of the BYOL Executor.
+
+The networking configuration within the sample templates are very simple. They basically allow the Executor to have a private
+IP address within their subnet. Usually public IP addresses should not be required by the Executors. However if you need to support
+public IP addresses you can modify the network configuration.
+
+The templates use a user name and password for admin access to the Executor VM's. This was done for simplicity sake.
+This may be OK for Executors run in a private subnet. However, using keys is a better solution.
 
 ---
 
