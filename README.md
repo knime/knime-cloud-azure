@@ -134,7 +134,7 @@ Here is a fragment of the ARM template that enables the termination notification
 The grace period defines a set window of time that a KNIME Executor has to reply to the termination event. After this period
 of time the Executor will be forcefully terminated.
 
-When notified of a termination the KNIME Executor will be notified to stop accepting new requests and complete all active requests.
+When notified of a pending termination, the KNIME Executor will stop accepting new requests and work towards completing all active requests.
 Ensure you make the grace period large enough to allow the Executor to complete currently running tasks. The Executor will complete
 the termination as soon as all active jobs have finished.
 
