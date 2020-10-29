@@ -6,7 +6,8 @@ It also includes sample Azure ARM and Terraform templates to help you get starte
 the templates (or snippets from them) and reuse them as needed. See the *license.txt* file in the repository
 for licensing specifics.
 
-KNIME Executors are used by the KNIME Server to run KNIME Workflows. In the KNIME Server, workflows can be executed
+KNIME Executors are used by the [KNIME Server](https://www.knime.com/knime-server) to run KNIME Workflows.
+In the KNIME Server, workflows can be executed
 through a schedule, a REST API call, remotely using the KNIME Analytics Platform and through the KNIME WebPortal.
 When a workflow is ready to run, the KNIME Server employs an Executor for the actual execution.
 
@@ -48,12 +49,12 @@ templates contained in this project.
 To use one of the ARM templates you can either clone this project to your local filesystem or simply copy the text of
 the template. There are multiple ways you can use ARM templates, but we'll focus here on using them in the Azure Console.
 
-Within the Azure Console, select the "Templates" item in the left hand side frame. Create a new template, give it a useful
-name and paste the contents according to which template you want to use. You can then save the template and use the *Deploy*
-button to deploy it.
+Start by logging into the Azure Console. From the "All services" blade, search for and select "Templates".
+Create a new template, give it a useful name and paste the template contents according to which template you want to use.
+You can then save the template and use the *Deploy* button to deploy it.
 
 Before deploying KNIME Executor(s), you'll first want to deploy the KNIME Server. When deploying one of the Executor templates,
-ensure you use the same resource group and VNET where the KNIME Server is deployed.
+ensure you use the same Azure resource group and Azure VNET where the KNIME Server is deployed.
 
 ---
 
@@ -76,6 +77,7 @@ unhealthy for any reason, the health check will report an *unhealthy* state. Any
 Executor with a new instance.
 
 There are two pieces to supporting the Application Health Extensions:
+
 * Specifying configuration of the extension in the ARM template,
 * Providing an API endpoint for the health check. This is provided by the KNIME Executor.
 
@@ -114,10 +116,11 @@ new work and to attempt to finish any current jobs.
 Termination notifications are sent to the VM's in A VMSS using an event system. Each VM in the VMSS will receive the termination event.
 By periodically checking for new events, a KNIME Executor instance can recognize that it is being terminated.
 
-There are two pieces to supporting the Application Health Extensions:
-* Specifying configuration of the extension in the ARM template
-* A script run periodically on the VM to recognize the notification and *complete* the termination when ready. This script
-is provided by the KNIME Executor automatically.
+Supporting termination notification requires:
+
+* Specifying configuration of the termination notification in the ARM template
+* A script run periodically on each Executor VM to recognize the termination notification and *complete* the termination when ready. This script
+is provided by the KNIME Executor and is configured to execute periodically.
 
 Here is a fragment of the ARM template that enables the termination notification:
 
@@ -131,13 +134,17 @@ Here is a fragment of the ARM template that enables the termination notification
 The grace period defines a set window of time that a KNIME Executor has to reply to the termination event. After this period
 of time the Executor will be forcefully terminated.
 
+When notified of a termination the KNIME Executor will be notified to stop accepting new requests and complete all active requests.
+Ensure you make the grace period large enough to allow the Executor to complete currently running tasks. The Executor will complete
+the termination as soon as all active jobs have finished.
+
 ### Autoscaling with Metrics (**PAYG only**)
 
 Azure VMSS [autoscaling](https://docs.microsoft.com/en-us/azure/virtual-machine-scale-sets/virtual-machine-scale-sets-autoscale-overview)
-supports elastic scaling. Elastic scaling allows you to provide a range of the number of Executor instances deployed.  The VMSS
+supports elastic scaling. Elastic scaling allows you to provide a range of the number of Executor instances to deploy.  The VMSS
 will manage the number of deployed instances according to defined metrics. The **PAYG** example ARM template uses the average CPU utilization
-of the VMSS to support scaling events. When the upper CPU utilization metric is passed, the VMSS will create a scale event to add more
-Executor instances. Likewise when the CPU utilization falls below the lower metric, the VMSS will pick instance(s) to terminate.
+of the VMSS to support scaling events. When the upper CPU utilization threshold is passed, the VMSS will create a scale event to add more
+Executor instances. Likewise when the CPU utilization falls below the lower threshold, the VMSS will pick instance(s) to terminate.
 
 The **PAYG** template enables you to specify the minimum and maximum number of Executor instances to deploy. The VMSS will initially
 deploy with the minimum number of instances. As load increases, the VMSS will automatically create new Executor instances.
@@ -153,7 +160,7 @@ extending the **PAYG** template.
 ## Custom Data
 
 Azure supports providing custom data to a VM. The custom data can be a shell script to execute, a text file or a cloud-init directive.
-KNIME Executors expect a cloud-init directive. This directive specifies the needed parameters that have to be passed to the Executor
+KNIME Executors expect a cloud-init directive. This directive specifies the needed parameters that must be passed to the Executor
 to allow it to find the KNIME Server.
 
 The example Azure ARM templates configure the custom data and pass the data to each VM within a VMSS. There is need for you to
@@ -276,6 +283,8 @@ This may be OK for Executors run in a private subnet. However, using keys is a b
 
 ## Useful Links
 
+* [KNIME Softare on Azure](https://www.knime.com/knime-software-on-microsoft-azure)
+* [KNIME Server](https://www.knime.com/knime-server)
 * [KNIME Server Admin Guide](https://docs.knime.com/2020-07/server_admin_guide/index.html)
 * [Application Health Monitoring Extension](https://docs.microsoft.com/en-us/azure/virtual-machine-scale-sets/virtual-machine-scale-sets-health-extension)
 * [Termination Notification](https://docs.microsoft.com/en-us/azure/virtual-machine-scale-sets/virtual-machine-scale-sets-terminate-notification)
