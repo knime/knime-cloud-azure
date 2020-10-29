@@ -135,7 +135,7 @@ The grace period defines a set window of time that a KNIME Executor has to reply
 of time the Executor will be forcefully terminated.
 
 When notified of a pending termination, the KNIME Executor will stop accepting new requests and work towards completing all active requests.
-Ensure you make the grace period large enough to allow the Executor to complete currently running tasks. The Executor will complete
+Ensure the grace period is large enough to allow the Executor to complete currently running tasks. The Executor will complete
 the termination as soon as all active jobs have finished.
 
 ### Autoscaling with Metrics (**PAYG only**)
