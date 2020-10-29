@@ -283,7 +283,7 @@ This may be OK for Executors run in a private subnet. However, using keys is a b
 
 ## Useful Links
 
-* [KNIME Softare on Azure](https://www.knime.com/knime-software-on-microsoft-azure)
+* [KNIME Software on Azure](https://www.knime.com/knime-software-on-microsoft-azure)
 * [KNIME Server](https://www.knime.com/knime-server)
 * [KNIME Server Admin Guide](https://docs.knime.com/2020-07/server_admin_guide/index.html)
 * [Application Health Monitoring Extension](https://docs.microsoft.com/en-us/azure/virtual-machine-scale-sets/virtual-machine-scale-sets-health-extension)
