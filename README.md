@@ -12,7 +12,7 @@ through a schedule, a REST API call, remotely using the KNIME Analytics Platform
 When a workflow is ready to run, the KNIME Server employs an Executor for the actual execution.
 
 The diagram below illustrates a KNIME Server and multiple KNIME Executors running in Azure. A virtual network (VNet)
-is required with a least one subnet. The KNIME Executors can be deployed using an Azure VM Scale Set (VMSS). The VMSS
+is required with at least one subnet. The KNIME Executors can be deployed using an Azure VM Scale Set (VMSS). The VMSS
 manages the Executor instances and supports elastic scaling of the Executors based on the average CPU utilization of
 instances in the VMSS.
 
@@ -36,9 +36,9 @@ To use a VM image from the Azure Marketplace in an ARM template (i.e. programmat
 To enable access, go to the Azure Marketplace and find the KNIME Executor of choice (BYOL or PAYG). Select the plan
 you want to use.
 
-On the page for the plan you'll see the text *Want to deploy programmatically?* with a link named *Get Started*. Click
-on the *Get Started* link. The link will take you to a new page with the plan details along with a list of your current
-subscriptions. Enable programatic access for the subscription(s) where you plan to use KNIME Executors. Ensure that
+On the page for the plan selection you'll see the text *Want to deploy programmatically?* with a link named *Get Started*.
+Click on the *Get Started* link. The link will take you to a new page with the plan details along with a list of your current
+subscriptions. Enable programmatic access for the subscription(s) where you plan to use KNIME Executors. Ensure that
 you save your selections using the *Save* button.
 
 Until you enable programmatic usage for an Executor plan you will be unable to start Executors using the ARM
@@ -69,8 +69,8 @@ to function properly within the VMSS deployment.
 
 ### Application Health Monitoring
 
-The [Application Health Monitoring Extension](https://docs.microsoft.com/en-us/azure/virtual-machine-scale-sets/virtual-machine-scale-sets-health-extension) is supported within Azure allowing VM instances within an VMSS to provide a
-health state to the VMSS. The Health Extensions polls an API endpoint periodically. The API endpoint is provided
+The [Application Health Monitoring Extension](https://docs.microsoft.com/en-us/azure/virtual-machine-scale-sets/virtual-machine-scale-sets-health-extension) is supported within Azure allowing VM instances within a VMSS to provide a
+health state to the VMSS. The Health Extension polls an API endpoint periodically. The API endpoint is provided
 by the KNIME Executor. It reports on whether the instance is *healthy* or *unhealthy*. If a KNIME Executor becomes
 unhealthy for any reason, the health check will report an *unhealthy* state. Any Executor instance reporting an
 *unhealthy* state will immediately be terminated by the VMSS. The VMSS will automatically replace an unhealthy
@@ -113,7 +113,7 @@ The Azure VMSS supports [termination notification](https://docs.microsoft.com/en
 a window of opportunity to perform any clean up tasks required. The KNIME Executors use this notification to stop accepting any
 new work and to attempt to finish any current jobs.
 
-Termination notifications are sent to the VM's in A VMSS using an event system. Each VM in the VMSS will receive the termination event.
+Termination notifications are sent to the VM's in a VMSS using an event system. Each VM in the VMSS will receive the termination event.
 By periodically checking for new events, a KNIME Executor instance can recognize that it is being terminated.
 
 Supporting termination notification requires:
@@ -239,7 +239,7 @@ supported parameters.
 The **PAYG** ARM template enables users to provide parameter values that affect the deployment. When using the template
 you will have an opportunity to provide values that match your deployment. The table below provides more information about the
 supported parameters. The **PAYG** template supports elastic scaling. The *minNumberOfInstances* and *maxNumberOfInstances*
-provide a range of the instance counts wanted in the VMSS. Likewise the *upperCpuPercentLimit* and *upperCpuPercentLimit* determine
+provide a range of the instance counts wanted in the VMSS. Likewise the *upperCpuPercentLimit* and *lowerCpuPercentLimit* determine
 the upper and lower thresholds used for elastic scaling of KNIME Executors in the VMSS.
 
 | Parameter             | Description                                                                                         |
