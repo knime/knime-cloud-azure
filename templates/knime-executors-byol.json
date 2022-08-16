@@ -50,10 +50,16 @@
       "defaultValue": 1,
       "maxValue": 100
     },
-    "serverHost": {
+    "knimeServerHost": {
       "type": "string",
       "metadata": {
-        "description": "Host name or IP address of the KNIME or RabbitMQ Server. A private address is preferred."
+        "description": "Host name or IP address of the KNIME Server server (or RabbitMQ if both are hosted on the same server). A private address is preferred."
+      }
+    },
+    "knimeServerPort": {
+      "type": "string",
+      "metadata": {
+        "description": "Port of the KNIME Server server (or RabbitMQ if both are hosted on the same server)."
       }
     },
     "rabbitmqVHost": {
@@ -62,6 +68,18 @@
         "description": "The name of the RabbitMQ virtual host (vhost) containing the KNIME Server and KNIME Executor application queues."
       },
       "defaultValue": "knime-server"
+    },
+    "rmqServerHost": {
+      "type": "string",
+      "metadata": {
+        "description": "Host name or IP address of the RabbitMQ server (if RabbitMQ is not hosted on the same server as the KNIME Server). A private address is preferred."
+      }
+    },
+    "rmqServerPort": {
+      "type": "string",
+      "metadata": {
+        "description": "Port of the RabbitMQ server (if RabbitMQ is not hosted on the same server as the KNIME Server)."
+      }
     },
     "rabbitmqUser": {
       "type": "string",
@@ -118,16 +136,19 @@
     "l04": "  - owner: knime:knime\n",
     "l05": "    path: /var/opt/knime-executor.config\n",
     "l06": "    content: |\n",
-    "l07": "[concat('      KNIME_SERVER_HOST=', parameters('serverHost'), '\n')]",
-    "l08": "[concat('      KNIME_VIRTUAL_HOST=', parameters('rabbitmqVHost'), '\n')]",
-    "l09": "[concat('      KNIME_RMQ_USER=', parameters('rabbitmqUser'), '\n')]",
-    "l10": "[concat('      KNIME_RMQ_PASSWORD=', parameters('rabbitmqPassword'), '\n')]",
-    "l11": "[concat('      KNIME_EXECUTOR_GROUP=', parameters('executorGroup'), '\n')]",
-    "l12": "[concat('      KNIME_EXECUTOR_RESOURCES=', parameters('executorResources'), '\n')]",
-    "l13": "[concat('      KNIME_EXECUTOR_HEAP_USAGE_PERCENT_LIMIT=', parameters('heapUsagePercentLimit'), '\n')]",
-    "l14": "[concat('      KNIME_EXECUTOR_CPU_USAGE_PERCENT_LIMIT=', parameters('cpuUsagePercentLimit'), '\n')]",
-    "l15": "runcmd:\n",
-    "l16": "  - /home/knime/executor-utils/configure_executor.sh\n",
+    "l07": "[concat('      KNIME_SERVER_HOST=', parameters('knimeServerHost'), '\n')]",
+    "l08": "[concat('      KNIME_SERVER_PORT=', parameters('knimeServerPort'), '\n')]",
+    "l09": "[concat('      KNIME_VIRTUAL_HOST=', parameters('rabbitmqVHost'), '\n')]",
+    "l10": "[concat('      KNIME_RMQ_SERVER_HOST=', parameters('rmqServerHost'), '\n')]",
+    "l11": "[concat('      KNIME_RMQ_SERVER_PORT=', parameters('rmqServerPort'), '\n')]",
+    "l12": "[concat('      KNIME_RMQ_USER=', parameters('rabbitmqUser'), '\n')]",
+    "l13": "[concat('      KNIME_RMQ_PASSWORD=', parameters('rabbitmqPassword'), '\n')]",
+    "l14": "[concat('      KNIME_EXECUTOR_GROUP=', parameters('executorGroup'), '\n')]",
+    "l15": "[concat('      KNIME_EXECUTOR_RESOURCES=', parameters('executorResources'), '\n')]",
+    "l16": "[concat('      KNIME_EXECUTOR_HEAP_USAGE_PERCENT_LIMIT=', parameters('heapUsagePercentLimit'), '\n')]",
+    "l17": "[concat('      KNIME_EXECUTOR_CPU_USAGE_PERCENT_LIMIT=', parameters('cpuUsagePercentLimit'), '\n')]",
+    "l18": "runcmd:\n",
+    "l19": "  - /home/knime/executor-utils/configure_executor.sh\n",
     "customData": "[concat(variables('l01'),variables('l02'),variables('l03'),variables('l04'),variables('l05'),variables('l06'),variables('l07'),variables('l08'),variables('l09'),variables('l10'),variables('l11'),variables('l12'),variables('l13'),variables('l14'),variables('l15'),variables('l16'))]"
   },
   "resources": [
