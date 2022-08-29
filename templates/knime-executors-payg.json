@@ -173,7 +173,7 @@
     "l17": "[concat('      KNIME_EXECUTOR_CPU_USAGE_PERCENT_LIMIT=', parameters('cpuUsagePercentLimit'), '\n')]",
     "l18": "runcmd:\n",
     "l19": "  - /home/knime/executor-utils/configure_executor.sh\n",
-    "customData": "[concat(variables('l01'),variables('l02'),variables('l03'),variables('l04'),variables('l05'),variables('l06'),variables('l07'),variables('l08'),variables('l09'),variables('l10'),variables('l11'),variables('l12'),variables('l13'),variables('l14'),variables('l15'),variables('l16'))]"
+    "customData": "[concat(variables('l01'),variables('l02'),variables('l03'),variables('l04'),variables('l05'),variables('l06'),variables('l07'),variables('l08'),variables('l09'),variables('l10'),variables('l11'),variables('l12'),variables('l13'),variables('l14'),variables('l15'),variables('l16'),variables('l17'),variables('l18'),variables('l19'))]"
   },
   "resources": [
     {
